@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pack Presença Pro | Engenharia de Conversão</title>
+  
+  <!-- Fontes Premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Ícones -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { 
+            sans: ['Inter', 'sans-serif'],
+            sora: ['Sora', 'sans-serif'] 
+          },
+          colors: {
+            bgDark: '#030303',
+            brand: '#10b981',
+            accent: '#06b6d4',
+            surface: 'rgba(255, 255, 255, 0.02)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #030303;
+      color: #ededed;
+      overflow-x: hidden;
+    }
+
+    /* Efeito de Ruído/Grain no Fundo */
+    .noise-bg {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none; z-index: -2; opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* Luzes de Fundo (Mesh) */
+    .mesh-glow {
+      position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+      width: 80vw; height: 60vh; border-radius: 50%;
+      background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 60%);
+      filter: blur(100px); z-index: -1; pointer-events: none;
+    }
+
+    /* Glassmorphism Premium */
+    .glass-panel {
+      background: linear-gradient(145deg, rgba(20,20,20,0.6) 0%, rgba(10,10,10,0.8) 100%);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 24px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-panel:hover {
+      border-color: rgba(16, 185, 129, 0.3); transform: translateY(-5px);
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.1);
+    }
+
+    /* Botão CTA Magnético */
+    .btn-glow {
+      position: relative; background: #fff; color: #000; z-index: 1;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-glow:hover { transform: scale(1.05); }
+    .btn-glow::before {
+      content: ''; position: absolute; inset: -2px; z-index: -1; border-radius: 99px;
+      background: linear-gradient(90deg, #10b981, #06b6d4, #10b981);
+      background-size: 200%; filter: blur(12px); opacity: 0; transition: opacity 0.3s ease;
+      animation: pulseGlow 3s linear infinite;
+    }
+    .btn-glow:hover::before { opacity: 0.8; }
+    
+    @keyframes pulseGlow { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+    /* Esconder scrollbar na tabela */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+  </style>
+</head>
+<!-- O overflow-hidden aqui trava o scroll enquanto o preloader carrega -->
+<body class="overflow-hidden selection:bg-brand selection:text-white">
+
+  <!-- Fundo -->
+  <div class="noise-bg"></div>
+  <div class="mesh-glow"></div>
+
+  <!-- 1. PRELOADER CINEMATOGRÁFICO -->
+  <div id="preloader" class="fixed inset-0 z-[100] bg-bgDark flex flex-col items-center justify-center">
+    <div class="relative flex flex-col items-center">
+      <span id="counter" class="font-sora text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand to-accent">0%</span>
+      <div class="h-[2px] w-0 bg-brand mt-4" id="loading-bar"></div>
+      <p class="text-zinc-600 tracking-[0.3em] text-xs uppercase mt-6 font-semibold animate-pulse">Iniciando Motor de Conversão</p>
+    </div>
+  </div>
+
+  <!-- NAVBAR FLUTUANTE -->
+  <nav class="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-4xl opacity-0 hero-elem">
+    <div class="bg-surface backdrop-blur-xl border border-white/10 rounded-full px-6 py-4 flex items-center justify-between shadow-2xl">
+      <span class="text-white font-bold text-sm tracking-widest uppercase flex items-center gap-2">
+        <i class="ph-fill ph-code text-brand text-xl"></i> RANDRIE
+      </span>
+      <a href="https://wa.me/5584996162332" target="_blank" class="text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 uppercase tracking-wide">
+        <i class="ph ph-whatsapp-logo text-lg"></i> Fale Comigo
+      </a>
+    </div>
+  </nav>
+
+  <!-- 2. HERO SECTION -->
+  <header class="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-20 pb-10 relative">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-xs font-bold text-zinc-300 mb-8 uppercase tracking-widest opacity-0 hero-elem">
+      <span class="w-2 h-2 rounded-full bg-brand animate-pulse"></span> Sistema Pack Presença Pro
+    </div>
+
+    <h1 class="font-sora text-6xl md:text-[5.5rem] lg:text-[7rem] font-black text-white leading-[1.05] tracking-tighter mb-8 max-w-5xl opacity-0 hero-elem">
+      Seu negócio está <br /> sendo <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand to-accent">ignorado.</span>
+    </h1>
+
+    <p class="text-lg md:text-xl text-zinc-400 font-light max-w-2xl mb-12 opacity-0 hero-elem leading-relaxed">
+      Enquanto você usa um link na bio amador, seus concorrentes fecham vendas automáticas. Reconstruímos sua estrutura digital para transformar cliques em clientes no WhatsApp.
+    </p>
+
+    <a href="https://wa.me/5584996162332" target="_blank" class="btn-glow px-10 py-5 rounded-full font-sora font-bold text-lg flex items-center gap-3 opacity-0 hero-elem">
+      Estancar a perda de dinheiro <i class="ph-bold ph-arrow-right"></i>
+    </a>
+  </header>
+
+  <!-- 3. BENTO GRID DO PROBLEMA -->
+  <section class="py-24 px-6 max-w-7xl mx-auto w-full relative z-10">
+    <div class="mb-16 text-center gsap-fade">
+      <h2 class="font-sora text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">O custo de parecer <span class="text-red-500">amador.</span></h2>
+      <p class="text-zinc-500 text-lg">O que acontece quando o seu cliente entra no seu Instagram hoje?</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[280px]">
+      <div class="glass-panel p-10 flex flex-col justify-between gsap-fade">
+        <i class="ph-duotone ph-hourglass-high text-5xl text-zinc-600 mb-4"></i>
+        <div>
+          <h3 class="text-2xl font-bold text-white mb-2">Lentidão Absurda</h3>
+          <p class="text-zinc-400 text-sm">Sites feitos em plataformas gratuitas demoram 8 segundos para abrir. O cliente fecha a aba no segundo 3.</p>
+        </div>
+      </div>
+      <div class="glass-panel p-10 flex flex-col justify-between md:col-span-2 gsap-fade">
+        <i class="ph-duotone ph-warning-circle text-5xl text-red-500/50 mb-4"></i>
+        <div>
+          <h3 class="text-2xl font-bold text-white mb-2">Fuga de Tráfego (Bounce Rate)</h3>
+          <p class="text-zinc-400 text-sm max-w-md">Uma bio confusa e um link cheio de opções aleatórias não direcionam o cliente. Você paga por atenção nas redes sociais, mas deixa o lead escapar na porta da loja.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. A SOLUÇÃO (O PACK) -->
+  <section class="py-24 px-6 max-w-7xl mx-auto w-full relative z-10 border-t border-white/5">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <div class="gsap-fade">
+        <h2 class="font-sora text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+          A Engenharia <br/> <span class="text-brand">Completa.</span>
+        </h2>
+        <p class="text-zinc-400 text-lg mb-10 leading-relaxed">
+          O Pack Presença Pro não é um "curativo". É uma reconstrução total da jornada de compra do seu cliente, projetada por um especialista em conversão (CRO).
+        </p>
+        
+        <div class="space-y-8">
+          <div class="flex gap-4 items-start">
+            <div class="w-12 h-12 rounded-2xl bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0">
+              <i class="ph-fill ph-rocket-launch text-brand text-2xl"></i>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold text-white mb-1">Landing Page Ultra-Rápida</h4>
+              <p class="text-zinc-500 text-sm">Código limpo, hospedagem premium. Carregamento quase instantâneo focado no botão do WhatsApp.</p>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start">
+            <div class="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
+              <i class="ph-fill ph-instagram-logo text-accent text-2xl"></i>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold text-white mb-1">Setup de Perfil Blindado</h4>
+              <p class="text-zinc-500 text-sm">Biografia magnética e capas de destaques desenhadas para transmitir autoridade no primeiro milissegundo.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. PROVA DE DADOS (CHART.JS) -->
+      <div class="glass-panel p-8 relative overflow-hidden gsap-fade">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-brand/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <h3 class="font-sora text-2xl font-bold text-white mb-2">Impacto Real no Caixa</h3>
+        <p class="text-zinc-500 text-sm mb-8">Evolução da taxa de cliques no WhatsApp (Amador vs Profissional).</p>
+        <div class="w-full h-72">
+          <canvas id="roiChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CTA FINAL MASSIVO & FOOTER -->
+  <section class="mt-20 border-t border-white/5 bg-gradient-to-b from-transparent to-brand/5 pt-32 pb-16 px-6 relative z-10 flex flex-col items-center text-center">
+    <div class="gsap-fade max-w-4xl flex flex-col items-center">
+      <h2 class="font-sora text-6xl md:text-8xl font-black text-white mb-6 uppercase tracking-tighter leading-[0.9]">
+        Pare de perder <br/> <span class="text-brand">Dinheiro.</span>
+      </h2>
+      <p class="text-xl text-zinc-400 mb-12 max-w-2xl">
+        Pagamento seguro: 50% para iniciarmos o desenvolvimento, 50% apenas na entrega do seu ecossistema digital rodando.
+      </p>
+      <a href="https://wa.me/5584996162332" target="_blank" class="btn-glow px-12 py-6 rounded-full font-sora font-black text-xl flex items-center gap-4">
+        Garantir o Pack Presença Pro <i class="ph-bold ph-lightning"></i>
+      </a>
+    </div>
+
+    <!-- Footer base -->
+    <footer class="w-full max-w-6xl mt-40 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-white/10 pt-8 opacity-50 text-sm">
+      <p>© 2026 Willian Randrie. Engenharia Front-end.</p>
+      <div class="flex gap-6">
+        <a href="#" class="hover:text-white transition-colors">Termos</a>
+        <a href="#" class="hover:text-white transition-colors">Privacidade</a>
+      </div>
+    </footer>
+  </section>
+
+  <!-- SCRIPTS EXTERNOS (CDNs) -->
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- LÓGICA DO SISTEMA -->
+  <script>
+    // 1. Lenis (Smooth Scroll) - Dá o peso premium à rolagem
+    const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+
+    // Integrar Lenis com GSAP
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+
+    // 2. Lógica do Preloader Cinematográfico
+    let count = 0;
+    const counterElement = document.getElementById("counter");
+    const loadingBar = document.getElementById("loading-bar");
+    
+    // Simula carregamento
+    const interval = setInterval(() => {
+      count += Math.floor(Math.random() * 12) + 2;
+      if(count > 100) count = 100;
+      
+      counterElement.innerText = count + "%";
+      loadingBar.style.width = count + "%";
+      
+      if(count === 100) {
+        clearInterval(interval);
+        
+        // Esconde o preloader e dispara a animação Hero
+        gsap.to("#preloader", {
+          opacity: 0, duration: 1, delay: 0.2, ease: "power2.inOut",
+          onComplete: () => {
+            document.getElementById("preloader").style.display = "none";
+            document.body.classList.remove("overflow-hidden"); // Libera o scroll
+            initHeroAnimation();
+            initChart();
+          }
+        });
+      }
+    }, 120);
+
+    // 3. Animações GSAP (Entrada Hero)
+    function initHeroAnimation() {
+      gsap.to(".hero-elem", {
+        y: 0, opacity: 1, duration: 1.2,
+        stagger: 0.15, ease: "power4.out",
+        startAt: { y: 60, opacity: 0 }
+      });
+    }
+
+    // GSAP Scroll Animations (Revelar na rolagem)
+    gsap.utils.toArray('.gsap-fade').forEach(elem => {
+      gsap.fromTo(elem, 
+        { y: 50, opacity: 0 },
+        { scrollTrigger: { trigger: elem, start: "top 85%" }, y: 0, opacity: 1, duration: 1, ease: "power3.out" }
+      );
+    });
+
+    // 4. Lógica do Chart.js (Prova Social)
+    function initChart() {
+      const ctx = document.getElementById('roiChart').getContext('2d');
+      
+      // Gradiente verde
+      let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+      gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+          datasets: [{
+            label: 'Conversão em Leads (%)',
+            data: [1.2, 4.5, 9.8, 15.4], // Dados de impacto
+            borderColor: '#10b981',
+            backgroundColor: gradient,
+            borderWidth: 4,
+            pointBackgroundColor: '#030303',
+            pointBorderColor: '#06b6d4',
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: 'rgba(10,10,10,0.9)', titleColor: '#fff', bodyColor: '#10b981', padding: 12 }
+          },
+          scales: {
+            x: { grid: { display: false, drawBorder: false }, ticks: { color: '#52525b', font: {family: 'Inter'} } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, ticks: { color: '#52525b', font: {family: 'Inter'}, callback: val => val + '%' } }
+          },
+          animation: { y: { duration: 2500, easing: 'easeOutExpo' } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
